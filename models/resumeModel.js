@@ -33,9 +33,12 @@ const resumeSchema = new mongoose.Schema({
     },
     resumeDoc: {
         type: String,
-        required: true,
-        trim: true
-    },
+        required: true
+    }
 },{timestamps: true})
 
 module.exports = mongoose.model('resume', resumeSchema)
+
+
+
+//D:\Anmol\dhananjayAPI\dhananjaybackend\uploadResume

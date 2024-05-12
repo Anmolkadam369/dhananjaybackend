@@ -1,14 +1,24 @@
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const multer = require("multer");
+const path = require("path");
 const app = express();
 const route = require('./route/routes');
-const port = 3001;
+const port = process.env.PORT || 3001;
 mongoose.set("strictQuery", true);
 
+require('dotenv').config();
 app.use(express.json());
-
 app.use(cors());
+
+app.use((req, res, next) => {
+  console.log(`Received request on ${req.path} with method ${req.method}`);
+  console.log("Request Body:", req.body);  // Logs all text fields
+  console.log("Files:", req.files); 
+  next();
+});
+
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -18,8 +28,7 @@ app.use((req, res, next) => {
 });
 mongoose
   .connect(
-    "mongodb+srv://hrmsoffshore:hrmsoffshore@hrmsoffshore.5i53lmo.mongodb.net/hrmsoffshore",
-    { useNewUrlParser: true }
+    `${process.env.DBLINK}`, { useNewUrlParser: true }
   )
   .then(() => {
     console.log("mongoDB is connected");

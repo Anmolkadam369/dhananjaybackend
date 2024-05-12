@@ -1,4 +1,5 @@
 const resumeModel = require("../models/resumeModel");
+const path = require('path');
 
 const validateEmail = (email) => {
     return /\S+@\S+\.\S+/.test(email);
@@ -8,9 +9,13 @@ const validateMobileNo = (Number) => {
     return /^[6789][0-9]{9}$/g.test(Number);
 };
 
+
 exports.resumeInfo = async (req, res) => {
     try {
+        console.log("some")
         let userData = req.body;
+        userData = { ...req.body, ...req.files };
+        console.log("userData", userData)
 
         let { fname, lname, email, phone, currentPosition, desiredPosition, resumeDoc } = userData;
 
@@ -101,15 +106,24 @@ exports.resumeInfo = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please enter Desired Position value" });
 
 
-        //--------------------ResumeDoc----------------
-        if (!resumeDoc)
+        //----------------------------------
+
+        if (!req.files[0])
             return res.status(400).send({ status: false, message: "ResumeDoc Position is mandatory" });
+            const resumeFile = req.files[0];
+            const resumeFilePath = resumeFile.path;
+            console.log("File path:", resumeFilePath);
+            let targetSegment = path.basename(resumeFilePath); 
+            let directoryPart = path.basename(path.dirname(resumeFilePath));
+            const relevantPath = path.join(directoryPart, targetSegment);
+             resumeDoc = userData.resumeDoc = relevantPath;
+            console.log("Stored Resume Path:", resumeDoc); 
 
         const userCreated = await resumeModel.create(userData);
 
         return res.status(201).send({ status: true, message: "Resume and Data Stored successfully", data: userCreated });
     } catch (error) {
-        console.log(error.message);
+        console.log("erorrrrrrrrr", error.message);
         return res.status(500).send({ status: false, message: error.message });
     }
 };
