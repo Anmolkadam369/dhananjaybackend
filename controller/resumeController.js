@@ -112,11 +112,8 @@ exports.resumeInfo = async (req, res) => {
             return res.status(400).send({ status: false, message: "ResumeDoc Position is mandatory" });
             const resumeFile = req.files[0];
             const resumeFilePath = resumeFile.path;
-            console.log("File path:", resumeFilePath);
-            let targetSegment = path.basename(resumeFilePath); 
-            let directoryPart = path.basename(path.dirname(resumeFilePath));
-            const relevantPath = path.join(directoryPart, targetSegment);
-             resumeDoc = userData.resumeDoc = relevantPath;
+            console.log("File path:", resumeFile.filename);
+             resumeDoc = userData.resumeDoc = `api/download/${resumeFile.filename}`;
             console.log("Stored Resume Path:", resumeDoc); 
 
         const userCreated = await resumeModel.create(userData);
