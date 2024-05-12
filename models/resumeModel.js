@@ -38,7 +38,3 @@ const resumeSchema = new mongoose.Schema({
 },{timestamps: true})
 
 module.exports = mongoose.model('resume', resumeSchema)
-
-
-
-//D:\Anmol\dhananjayAPI\dhananjaybackend\uploadResume

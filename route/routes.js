@@ -14,7 +14,7 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
-
+// this is for uploadation
 const upload = multer({ storage: storage });
 
 router.post("/api/resumeInfo",upload.any(), resumeInfo);
