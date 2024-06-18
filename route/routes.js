@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require("path");
 const fs = require("fs");
 
-const { resumeInfo, getResumeInfo } = require("../controller/resumeController");
+const { resumeInfo, getResumeInfo, downloadExcel } = require("../controller/resumeController");
 
 // Set up multer storage
 const storage = multer.diskStorage({
@@ -17,15 +17,13 @@ const storage = multer.diskStorage({
     }
 });
 
-// Create a multer instance for handling file uploads
 const upload = multer({ storage: storage });
 
-// Serve static files from the 'uploadResume' directory
 router.use('/uploadResume', express.static(path.join(__dirname, '../uploadResume')));
 
-// Define your routes
 router.post("/api/resumeInfo", upload.any(), resumeInfo);
 router.get("/api/getResumeInfo", getResumeInfo);
+router.get('/api/downloadExcel', downloadExcel)
 
 // Route to handle file downloads
 router.get("/api/download/:filename", (req, res) => {
