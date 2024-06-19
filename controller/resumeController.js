@@ -3,6 +3,7 @@ const path = require('path');
 const XLSX = require('xlsx');
 const XLSXStyle = require('xlsx-style');
 const dirName = path.join(__dirname, '..', 'excelFiles');
+const fs = require("fs");
 
 const validateEmail = (email) => {
     return /\S+@\S+\.\S+/.test(email);
@@ -112,11 +113,11 @@ exports.resumeInfo = async (req, res) => {
 
         if (!req.files[0])
             return res.status(400).send({ status: false, message: "ResumeDoc Position is mandatory" });
-            const resumeFile = req.files[0];
-            const resumeFilePath = resumeFile.path;
-            console.log("File path:", resumeFile.filename);
-             resumeDoc = userData.resumeDoc = `api/download/${resumeFile.filename}`;
-            console.log("Stored Resume Path:", resumeDoc); 
+        const resumeFile = req.files[0];
+        const resumeFilePath = resumeFile.path;
+        console.log("File path:", resumeFile.filename);
+        resumeDoc = userData.resumeDoc = `api/download/${resumeFile.filename}`;
+        console.log("Stored Resume Path:", resumeDoc);
 
         const userCreated = await resumeModel.create(userData);
 
@@ -138,12 +139,45 @@ exports.getResumeInfo = async (req, res) => {
     }
 }
 
-exports.downloadExcel = async (req, res) => {
+exports.downloadResume = async (req, res) => {
+    try {
+        const { filename } = req.params;
+        const filePath = path.join(__dirname, `../uploadResume/${filename}`);
+        fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(404).send({ status: false, message: "File not found" });
+            }
+
+            res.download(filePath, (err) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).send({ status: false, message: "Error downloading file" });
+                }
+            });
+        });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).send({ status: false, message: error.message });
+    }
+}
+
+exports.createExcel = async (req, res) => {
     try {
         const rootDir = path.join(__dirname, '..');
-        const getResumeData = await resumeModel.find({}, '-_id -createdAt -updatedAt -__v -resumeDoc').lean();
 
-        console.log("get resume", getResumeData); 
+        const excelFiles = path.join(__dirname, '../excelFiles');
+        fs.readdir(excelFiles, (error, files) => {
+            if (error) throw error; {
+                for (const file of files)
+                    fs.unlink(path.join(excelFiles, file), error => {
+                        if (error) throw error;
+                        console.log(`Successfully deleted ${file}`);
+                    })
+            }
+        })
+
+        const getResumeData = await resumeModel.find({}, '-_id -createdAt -updatedAt -__v -resumeDoc').lean();
 
         const mappedData = getResumeData.map(item => ({
             'First Name': item.fname,
@@ -199,7 +233,7 @@ exports.downloadExcel = async (req, res) => {
             }
         }
 
-        const fileName = `Resume-${Date.now()}.xlsx`;
+        const fileName = `UserInfo-${Date.now()}.xlsx`;
         const outputPath = path.join(dirName, fileName);
 
         XLSXStyle.writeFile(styledWorkbook, outputPath);
@@ -212,3 +246,25 @@ exports.downloadExcel = async (req, res) => {
         return res.status(500).send({ status: false, message: error.message });
     }
 };
+
+exports.downloadExcel = async (req, res) => {
+    try {
+        const { filename } = req.params;
+        const filePath = path.join(__dirname, `../excelFiles/${filename}`);
+        fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(404).send({ status: false, message: "File not found" });
+            }
+            res.download(filePath, (err) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).send({ status: false, message: "Error downloading file" });
+                }
+            });
+        });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).send({ status: false, message: error.message });
+    }
+}
